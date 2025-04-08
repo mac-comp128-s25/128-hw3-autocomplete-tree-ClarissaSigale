@@ -1,10 +1,7 @@
 package autoComplete;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Map;
-
-import apple.laf.JRSUIUtils.Tree;
 
 /**
  * A prefix tree used for autocompletion. The root of the tree just stores links to child nodes (up
@@ -73,18 +70,27 @@ public class PrefixTree {
     public ArrayList<String> getWordsForPrefix(String prefix) {
         ArrayList<String> results = new ArrayList<>();
         TreeNode tempRoot = root;
-
-        if (!contains(prefix)){
-            return results;
-        }
         for (int i = 0; i<prefix.length(); i++){
             Character curr = prefix.charAt(i);
+            if (!tempRoot.children.containsKey(curr)){
+                return results;
+            }
             tempRoot = tempRoot.children.get(curr);
         }
 
         getWordsHelper(tempRoot, prefix, results);
         return results;
     }
+
+    /**
+     * Helper method, adds the characters to the current word and makes a recursive
+     * call on the child node until isWord is true, then moves to next word
+     * 
+     * @param tempRoot
+     * @param word
+     * @param results
+     * @return completed word
+     */
 
     private void getWordsHelper(TreeNode tempRoot, String word, ArrayList<String> results){
         if (tempRoot.isWord){
@@ -95,10 +101,6 @@ public class PrefixTree {
             getWordsHelper(entry.getValue(), word+entry.getKey(), results);
         }
     }
-
-
-
-
 
     /**
      * @return the number of words in the tree
