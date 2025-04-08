@@ -4,17 +4,17 @@ import java.util.ArrayList;
 import java.util.Map;
 
 /**
- * A prefix tree used for autocompletion. The root of the tree just stores links to child nodes (up to 26, one per letter).
- * Each child node represents a letter. A path from a root's child node down to a node where isWord is true represents the sequence
- * of characters in a word.
+ * A prefix tree used for autocompletion. The root of the tree just stores links to child nodes (up
+ * to 26, one per letter). Each child node represents a letter. A path from a root's child node down
+ * to a node where isWord is true represents the sequence of characters in a word.
  */
 public class PrefixTree {
-    private TreeNode root; 
+    private TreeNode root;
 
     // Number of words contained in the tree
     private int size;
 
-    public PrefixTree(){
+    public PrefixTree() {
         root = new TreeNode();
     }
 
@@ -24,35 +24,89 @@ public class PrefixTree {
      * @param word
      */
     public void add(String word){
-        //TODO: complete me
+        TreeNode tempRoot = root;
+        if (!contains(word)){
+            for (int i = 0; i < word.length(); i++){
+                Character curr = word.charAt(i);
+                if (!tempRoot.children.containsKey(curr)){
+                    TreeNode newNode = new TreeNode();
+                    newNode.letter = curr;
+                    tempRoot.children.put(curr, newNode);
+                }
+                tempRoot = tempRoot.children.get(curr);
+            }
+            if (!tempRoot.isWord){
+                size++;
+                tempRoot.isWord = true;
+            }
+        }
     }
 
     /**
      * Checks whether the word has been added to the tree
+     * 
      * @param word
      * @return true if contained in the tree.
      */
-    public boolean contains(String word){
-        //TODO: complete me
-        return false;
+    public boolean contains(String word) {
+        TreeNode tempRoot = root;
+        for (int i = 0; i < word.length(); i++) {
+            Character curr = word.charAt(i);
+            if (!tempRoot.children.containsKey(curr)) {
+                return false;
+            }
+            tempRoot = tempRoot.children.get(curr);
+        }
+        return tempRoot.isWord;
     }
 
     /**
-     * Finds the words in the tree that start with prefix (including prefix if it is a word itself).
-     * The order of the list can be arbitrary.
+     * Finds the words in the tree that start with prefix (including prefix if it is a word itself). The
+     * order of the list can be arbitrary.
+     * 
      * @param prefix
      * @return list of words with prefix
      */
-    public ArrayList<String> getWordsForPrefix(String prefix){
-        //TODO: complete me
-        return null;
+    public ArrayList<String> getWordsForPrefix(String prefix) {
+        ArrayList<String> results = new ArrayList<>();
+        TreeNode tempRoot = root;
+        for (int i = 0; i<prefix.length(); i++){
+            Character curr = prefix.charAt(i);
+            if (!tempRoot.children.containsKey(curr)){
+                return results;
+            }
+            tempRoot = tempRoot.children.get(curr);
+        }
+
+        getWordsHelper(tempRoot, prefix, results);
+        return results;
+    }
+
+    /**
+     * Helper method, adds the characters to the current word and makes a recursive
+     * call on the child node until isWord is true, then moves to next word
+     * 
+     * @param tempRoot
+     * @param word
+     * @param results
+     * @return completed word
+     */
+
+    private void getWordsHelper(TreeNode tempRoot, String word, ArrayList<String> results){
+        if (tempRoot.isWord){
+            results.add(word);
+        }
+
+        for (Map.Entry<Character, TreeNode> entry : tempRoot.children.entrySet()){
+            getWordsHelper(entry.getValue(), word+entry.getKey(), results);
+        }
     }
 
     /**
      * @return the number of words in the tree
      */
-    public int size(){
+    public int size() {
         return size;
     }
-    
+
 }
