@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
+import apple.laf.JRSUIUtils.Tree;
+
 /**
  * A prefix tree used for autocompletion. The root of the tree just stores links to child nodes (up
  * to 26, one per letter). Each child node represents a letter. A path from a root's child node down
@@ -25,32 +27,20 @@ public class PrefixTree {
      * @param word
      */
     public void add(String word){
+        TreeNode tempRoot = root;
         if (!contains(word)){
-            size++;
-            TreeNode tempRoot = root;
             for (int i = 0; i < word.length(); i++){
-                
                 Character curr = word.charAt(i);
-                if (tempRoot.children.containsKey(curr)){
-                    if (i==word.length()-1){
-                        tempRoot.children.get(curr).isWord = true;
-                        return;
-                    }
-                    else{
-                        tempRoot = tempRoot.children.get(curr);
-                    }
+                if (!tempRoot.children.containsKey(curr)){
+                    TreeNode newNode = new TreeNode();
+                    newNode.letter = curr;
+                    tempRoot.children.put(curr, newNode);
                 }
-                else{
-                    tempRoot.children.put(curr, new TreeNode());
-                    if (i==word.length()-1){
-                        tempRoot.children.get(curr).isWord = true;
-                        return;
-                    }
-                    else{
-                        tempRoot = tempRoot.children.get(curr);
-                    }
-
-                }    
+                tempRoot = tempRoot.children.get(curr);
+            }
+            if (!tempRoot.isWord){
+                size++;
+                tempRoot.isWord = true;
             }
         }
     }
@@ -65,18 +55,12 @@ public class PrefixTree {
         TreeNode tempRoot = root;
         for (int i = 0; i < word.length(); i++) {
             Character curr = word.charAt(i);
-            if (tempRoot.children.containsKey(curr)) {
-                if (i == word.length() - 1 && tempRoot.children.get(curr).isWord) {
-                    return true;
-                } else if (i == word.length() - 1) {
-                    return false;
-                }
-                tempRoot = tempRoot.children.get(curr);
-            } else {
+            if (!tempRoot.children.containsKey(curr)) {
                 return false;
             }
+            tempRoot = tempRoot.children.get(curr);
         }
-        return true;
+        return tempRoot.isWord;
     }
 
     /**
@@ -87,9 +71,34 @@ public class PrefixTree {
      * @return list of words with prefix
      */
     public ArrayList<String> getWordsForPrefix(String prefix) {
-        // TODO: complete me
-        return null;
+        ArrayList<String> results = new ArrayList<>();
+        TreeNode tempRoot = root;
+
+        if (!contains(prefix)){
+            return results;
+        }
+        for (int i = 0; i<prefix.length(); i++){
+            Character curr = prefix.charAt(i);
+            tempRoot = tempRoot.children.get(curr);
+        }
+
+        getWordsHelper(tempRoot, prefix, results);
+        return results;
     }
+
+    private void getWordsHelper(TreeNode tempRoot, String word, ArrayList<String> results){
+        if (tempRoot.isWord){
+            results.add(word);
+        }
+
+        for (Map.Entry<Character, TreeNode> entry : tempRoot.children.entrySet()){
+            getWordsHelper(entry.getValue(), word+entry.getKey(), results);
+        }
+    }
+
+
+
+
 
     /**
      * @return the number of words in the tree
